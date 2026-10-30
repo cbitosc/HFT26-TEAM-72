@@ -23,7 +23,8 @@ data class MeshPacket(
     fun isAuthentic() = auth.isNotBlank() && constantTimeEquals(auth, MeshSecurity.sign(signingPayload()))
 
     fun encode(): String = JSONObject().apply {
-        put("id", id); put("sender", sender); put("priority", priority); put("body", MeshSecurity.encrypt(body))
+        put("id", id); put("sender", sender); put("priority", priority)
+        put("body", MeshSecurity.encrypt(MeshCompression.compress(body)))
         put("createdAt", createdAt); put("ttl", ttl); put("hops", hops.joinToString(","))
         put("type", type); put("receiptFor", receiptFor); put("auth", auth)
     }.toString()
@@ -31,8 +32,10 @@ data class MeshPacket(
     companion object {
         fun decode(json: String): MeshPacket {
             val o = JSONObject(json)
+            val decryptedBody = MeshSecurity.decrypt(o.getString("body"))
+            val decompressedBody = MeshCompression.decompress(decryptedBody)
             return MeshPacket(o.getString("id"), o.getString("sender"), o.getString("priority"),
-                MeshSecurity.decrypt(o.getString("body")), o.getLong("createdAt"), o.getInt("ttl"),
+                decompressedBody, o.getLong("createdAt"), o.getInt("ttl"),
                 o.optString("hops").split(',').filter { it.isNotBlank() },
                 o.optString("type", TYPE_MESSAGE), o.optString("receiptFor").ifBlank { null }, o.optString("auth"))
         }
