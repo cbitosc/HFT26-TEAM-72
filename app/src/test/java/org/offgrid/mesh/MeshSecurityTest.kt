@@ -60,8 +60,12 @@ class MeshSecurityTest {
         val cleartext = "Critical supplies delivered"
         val ciphertext = MeshSecurity.encrypt(cleartext)
 
-        // Modify ciphertext character
-        val tampered = ciphertext.dropLast(2) + "=="
+        // Corrupt an actual payload character while keeping the v1: prefix and valid base64
+        val raw = ciphertext.removePrefix("v1:")
+        val rawBytes = java.util.Base64.getDecoder().decode(raw)
+        // Flip bits in the AES-GCM ciphertext/tag portion (beyond the 12-byte IV)
+        rawBytes[rawBytes.size - 1] = (rawBytes[rawBytes.size - 1].toInt() xor 0xFF).toByte()
+        val tampered = "v1:" + java.util.Base64.getEncoder().encodeToString(rawBytes)
 
         assertThrows(Exception::class.java) {
             MeshSecurity.decrypt(tampered)
