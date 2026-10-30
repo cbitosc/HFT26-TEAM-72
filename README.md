@@ -12,7 +12,7 @@
 | **Team Name** | **Silent Void** |
 | **Team Number** | `TEAM-72` (`HFT26-TEAM-72`) |
 | **Registration ID** | `HFEST26-YLQET7WF` |
-| **Problem Track** | **Track Selection in Progress** |
+| **Problem Track** | **Disaster Management / Offline Mesh Communication** |
 | **Domain** | `General Track` |
 | **Team Leader** | Rohit Pranav Naidu (naidurohitpranav@gmail.com) |
 | **Institution** | St. Martins Engineering College |
@@ -28,62 +28,52 @@
 
 ---
 
-## 🎯 Problem Statement
+# 📡 OFFGRID — Decentralized Offline Radio Mesh Network
 
-### **Track Selection in Progress**
-*Domain:* **General Track**
+OFFGRID is an emergency local mesh communication system engineered for disaster relief and off-grid zones where cellular infrastructure and internet connectivity are destroyed or unavailable. 
 
-Details regarding the chosen problem statement track and technical requirements.
+The application deliberately operates with **zero internet permission (`INTERNET` permission is completely omitted)**. All payloads move strictly peer-to-peer via Bluetooth Classic (RFCOMM), Bluetooth Low Energy (BLE), and Android Wi‑Fi Direct TCP sockets.
 
 ---
 
-## 🛠️ Contribution & Submission Workflow
+## 🌟 Key Features
 
-All teams must follow the official fork-and-pull-request workflow:
+- **Multi-Device Bluetooth Mesh**: Dynamic discovery and concurrent multi-peer connections across Android devices.
+- **Store-and-Forward Mesh Relay**: Devices automatically function as intermediate relay nodes, forwarding packets with hop counting and configurable TTL (Time-to-Live) to dramatically extend network reach.
+- **Strict Peer Filtering**: Only scans and connects with devices running the OFFGRID app (filtering via custom service UUIDs and identifiers, eliminating interference with non-OFFGRID Bluetooth devices).
+- **Two-Way Communication & Delivery Receipts**: Full bi-directional messaging with one-tap peer replies and cryptographic delivery acknowledgments.
+- **Emergency Broadcast SOS**: One-touch broadcast of SOS alerts with optional localized GPS coordinates without internet access.
+- **End-to-End Cryptography**: Payloads encrypted with AES-GCM and authenticated using HMAC-SHA256 for secure transmission over open radio frequencies.
+- **Text-to-Speech & Voice Features**: Hands-free audio reading for incoming high-priority emergency alerts.
 
-1. **Fork this Repository**:
-   - One team member should click the **Fork** button at the top right to fork this upstream repository to your personal/team GitHub account.
-2. **Add Collaborators**:
-   - In your forked repository, navigate to **Settings > Collaborators** and invite all your registered team members.
-3. **Clone & Develop Locally**:
+---
+
+## 🏗️ Architecture & Tech Stack
+
+- **Platform**: Native Android (Kotlin, Android SDK 35, Min SDK 26)
+- **Local Transports**:
+  - Bluetooth Classic (RFCOMM channel fallback & insecure/secure sockets)
+  - Bluetooth Low Energy (BLE beacon advertising & scan filters)
+  - Wi-Fi Direct (P2P group sockets)
+- **Zero Internet Requirement**: Completely air-gapped radio communication.
+- **Security**: AES-256-GCM encryption with HMAC-SHA256 packet signatures.
+
+---
+
+## 🚀 Build and Installation
+
+1. Clone the repository:
    ```bash
-   git clone https://github.com/<your-username>/HFT26-TEAM-72.git
+   git clone https://github.com/cbitosc/HFT26-TEAM-72.git
    cd HFT26-TEAM-72
-   git checkout -b feature/prototype
    ```
-4. **Commit & Push Regularly**:
-   - Make atomic, descriptive commits throughout the hackathon.
+2. Build the debug APK via Gradle:
    ```bash
-   git add .
-   git commit -m "feat: implement core solution architecture"
-   git push origin feature/prototype
+   ./gradlew assembleDebug
    ```
-5. **Open Pull Request (PR) for Final Submission**:
-   - When ready for evaluation, open a **Pull Request** from your fork's `main` branch back to this upstream repository's `main` branch.
-   - **PR Title Format**: `[SUBMISSION] TEAM-72 - Silent Void - Track Selection in Progress`
-   - **PR Description Checklist**:
-     - 📌 Solution Overview & Approach
-     - 🏗️ Architecture & Tech Stack Details
-     - 🚀 Local Setup & Installation Instructions
-     - 🎥 Demo Video Link / Live Deployment URL
-     - 📸 Key Screenshots & Visuals
-
----
-
-## 📁 Recommended Project Structure
-
-```
-.
-├── src/                  # Source code (Frontend / Backend / ML)
-├── docs/                 # Documentation, architecture diagrams, slides
-├── tests/                # Test suites & verification scripts
-├── README.md             # Your project documentation & presentation
-└── LICENSE               # Open-source license (MIT recommended)
-```
-
----
-
-## ⚠️ Important Rules & Code of Conduct
-* **Upstream Protection**: Do not push directly to this repository's main branch. All evaluation will be conducted on your submitted Pull Request.
-* **Original Work**: All code submitted must be developed during the hackathon timeline. Open-source libraries and frameworks are welcomed with proper attribution.
-* **Code Freeze**: Final Pull Requests must be submitted before the designated hackathon submission deadline.
+3. Install the APK on two or more Android devices:
+   ```bash
+   adb install -r app/build/outputs/apk/debug/app-debug.apk
+   ```
+4. Grant the required **Nearby Devices** and location permissions when prompted.
+5. Tap **SCAN PEERS** or let background BLE beacons auto-discover nearby OFFGRID nodes and start chatting!
