@@ -3,6 +3,7 @@ build/
 app/build/
 .idea/
 .tools/
+.vscode/
 local.properties
 gradle.properties
 *.iml
