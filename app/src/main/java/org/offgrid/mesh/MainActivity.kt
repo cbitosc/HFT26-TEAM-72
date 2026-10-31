@@ -434,7 +434,7 @@ class MainActivity : AppCompatActivity(), RadioMeshManager.Listener {
         send.isEnabled = false
         record.setOnClickListener {
             selectedVoiceLanguage = language.selectedItem?.toString() ?: "English"
-            if (recorder == null) {
+            if (audioRecord == null) {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) startVoiceRecording()
                 else { pendingMicrophoneAction = { startVoiceRecording() }; microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) }
                 record.text = "STOP RECORDING"

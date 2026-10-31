@@ -26,7 +26,7 @@ object VoiceMessage {
 
     fun play(context: Context, packetId: String, payload: String) {
         val clip = decode(payload) ?: return
-        val file = File(context.cacheDir, "voice-$packetId.m4a")
+        val file = File(context.cacheDir, "voice-$packetId.wav")
         file.writeBytes(clip.audio)
         MediaPlayer().apply {
             setDataSource(file.absolutePath)
