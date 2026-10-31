@@ -467,9 +467,9 @@ class MainActivity : AppCompatActivity(), RadioMeshManager.Listener {
 
     private fun startVoiceRecording() {
         stopVoiceRecording()
-        val sampleRate = 16000
+        val sampleRate = 8000
         val channelConfig = android.media.AudioFormat.CHANNEL_IN_MONO
-        val audioFormat = android.media.AudioFormat.ENCODING_PCM_16BIT
+        val audioFormat = android.media.AudioFormat.ENCODING_PCM_8BIT
         val minBuf = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
         if (minBuf <= 0) { Toast.makeText(this, "Audio recording not supported", Toast.LENGTH_LONG).show(); return }
         try {
@@ -483,22 +483,20 @@ class MainActivity : AppCompatActivity(), RadioMeshManager.Listener {
                     val out = java.io.FileOutputStream(voiceFile!!)
                     val header = ByteArray(44)
                     out.write(header)
-                    val buffer = ShortArray(minBuf / 2)
+                    val buffer = ByteArray(minBuf.coerceAtLeast(1024))
                     var totalBytes = 0
                     while (isRecording) {
                         val read = audioRecord?.read(buffer, 0, buffer.size) ?: 0
                         if (read > 0) {
-                            val byteBuf = java.nio.ByteBuffer.allocate(read * 2).order(java.nio.ByteOrder.LITTLE_ENDIAN)
-                            for (i in 0 until read) byteBuf.putShort(buffer[i])
-                            out.write(byteBuf.array())
-                            totalBytes += read * 2
+                            out.write(buffer, 0, read)
+                            totalBytes += read
                         }
                     }
                     out.close()
-                    writeWavHeader(voiceFile!!, sampleRate, 1, 16, totalBytes)
+                    writeWavHeader(voiceFile!!, sampleRate, 1, 8, totalBytes)
                 } catch (_: Exception) { }
             }.apply { start() }
-            showStatus("Recording voice message — tap stop within 30 seconds", Status.ACTIVE)
+            showStatus("Recording voice message — tap stop to send", Status.ACTIVE)
         } catch (e: Exception) {
             audioRecord?.release(); audioRecord = null
             Toast.makeText(this, "Could not start recording: ${e.message}", Toast.LENGTH_LONG).show()
