@@ -5,7 +5,6 @@ app/build/
 .tools/
 .vscode/
 local.properties
-gradle.properties
 *.iml
 .DS_Store
 *.apk
