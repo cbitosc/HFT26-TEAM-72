@@ -578,14 +578,14 @@ class RadioMeshManager(private val context: Context, private val deviceId: Strin
             openSockets[key]?.let { try { it.close() } catch (_: Exception) {} }
             openSockets[key] = socket
         }
-        writers[key] = output.bufferedWriter(bufferSize = 32768)
+        writers[key] = BufferedWriter(OutputStreamWriter(output, Charsets.UTF_8), 32768)
         peers[key] = Peer(key, peers[key]?.label ?: key, transport, true, peers[key]?.rssiDbm)
         reportPeers()
         report("$transport peer connected locally")
         flushOutbox()
         thread(name = "mesh-read-$key") {
             try {
-                input.bufferedReader(bufferSize = 32768).forEachLine { line ->
+                BufferedReader(InputStreamReader(input, Charsets.UTF_8), 32768).forEachLine { line ->
                     receive(MeshPacket.decode(line), key)
                 }
             } catch (_: Exception) {
