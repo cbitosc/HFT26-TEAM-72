@@ -923,16 +923,12 @@ class MainActivity : AppCompatActivity(), RadioMeshManager.Listener {
         startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
     }
 
+    private var activeConnectedCount = 0
+
     override fun status(text: String) {
-        // Determine actual connection state from peer list
-        val connectedPeers = (0 until peersBox.childCount).count { i ->
-            (peersBox.getChildAt(i) as? LinearLayout)?.let { row ->
-                (row.getChildAt(0) as? TextView)?.text?.contains("CONNECTED") == true
-            } ?: false
-        }
         val displayText = when {
-            text.contains("connected", true) && connectedPeers > 0 -> "Connected to OFFGRID peer"
-            text.contains("connected", true) -> "Connected to OFFGRID peer"
+            text.contains("connected", true) && activeConnectedCount > 0 -> "Connected to OFFGRID mesh ($activeConnectedCount peer${if (activeConnectedCount > 1) "s" else ""})"
+            text.contains("connected", true) -> text
             text.contains("unavailable", true) || text.contains("failed", true) || text.contains("busy", true) -> text
             text.contains("Scanning", true) -> "Scanning for OFFGRID peers…"
             else -> text
@@ -940,7 +936,7 @@ class MainActivity : AppCompatActivity(), RadioMeshManager.Listener {
         showStatus(displayText, when {
             text.contains("unavailable", true) || text.contains("failed", true) || text.contains("busy", true) -> Status.ERROR
             text.contains("Scanning", true) -> Status.ACTIVE
-            text.contains("connected", true) -> Status.OK
+            text.contains("connected", true) || activeConnectedCount > 0 -> Status.OK
             else -> Status.WARNING
         })
     }
@@ -949,6 +945,7 @@ class MainActivity : AppCompatActivity(), RadioMeshManager.Listener {
         topology.update(localDeviceId, items)
         val online = items.size
         val connected = items.count { it.connected }
+        activeConnectedCount = connected
         val avgRssi = (items.mapNotNull { it.rssiDbm }.average()).toInt()
         updateStat("ONLINE", online.toString())
         updateStat("CONNECTED", connected.toString())

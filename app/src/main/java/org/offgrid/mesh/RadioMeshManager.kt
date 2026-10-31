@@ -87,7 +87,13 @@ class RadioMeshManager(private val context: Context, private val deviceId: Strin
     fun removeListener(l: Listener) { listeners.remove(l) }
 
     private fun report(text: String) { Log.d("OFFGRID-RADIO", text); for (l in listeners) main.post { l.status(text) } }
-    private fun reportPeers() { for (l in listeners) main.post { l.peers(peers.values.sortedBy { it.label }) } }
+    private fun reportPeers() {
+        val list = peers.values.map { p ->
+            val isConn = writers.containsKey(p.id) || p.connected
+            if (p.connected != isConn) p.copy(connected = isConn) else p
+        }.sortedBy { it.label }
+        for (l in listeners) main.post { l.peers(list) }
+    }
     private fun reportDelivery(id: String, state: String) { for (l in listeners) main.post { l.delivery(id, state) } }
     private fun offgridLabel(address: String, name: String?): String =
         if (!name.isNullOrBlank()) name else "OFFGRID-${address.replace(":", "").takeLast(4)}"
@@ -125,13 +131,13 @@ class RadioMeshManager(private val context: Context, private val deviceId: Strin
                     val isOffgrid = isOffgridDevice(device, name)
 
                     if (isOffgrid) {
-                        val wasConnected = peers["bt:${device.address}"]?.connected ?: false
+                        val wasConnected = writers.containsKey("bt:${device.address}") || (peers["bt:${device.address}"]?.connected == true)
                         val transport = if (isBonded) "Bluetooth (paired)" else "Bluetooth"
                         peers["bt:${device.address}"] = Peer("bt:${device.address}", offgridLabel(device.address, name), transport, wasConnected, rssi)
                         reportPeers()
                         if (!wasConnected) {
                             val lastFail = failedAddresses[device.address] ?: 0L
-                            if (System.currentTimeMillis() - lastFail > 20_000L && !connectingAddresses.contains(device.address)) {
+                            if (System.currentTimeMillis() - lastFail > 8_000L && !connectingAddresses.contains(device.address)) {
                                 autoConnect(device.address)
                             }
                         }
@@ -144,14 +150,14 @@ class RadioMeshManager(private val context: Context, private val deviceId: Strin
                     val device = i.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE) ?: return
                     if (device.address == bluetooth?.address) return
                     if (isOffgridDevice(device)) {
-                        val wasConnected = peers["bt:${device.address}"]?.connected ?: false
+                        val wasConnected = writers.containsKey("bt:${device.address}") || (peers["bt:${device.address}"]?.connected == true)
                         val isBonded = device.bondState == BluetoothDevice.BOND_BONDED
                         val transport = if (isBonded) "Bluetooth (paired)" else "Bluetooth"
                         peers["bt:${device.address}"] = Peer("bt:${device.address}", offgridLabel(device.address, device.name), transport, wasConnected, peers["bt:${device.address}"]?.rssiDbm)
                         reportPeers()
                         if (!wasConnected) {
                             val lastFail = failedAddresses[device.address] ?: 0L
-                            if (System.currentTimeMillis() - lastFail > 20_000L && !connectingAddresses.contains(device.address)) {
+                            if (System.currentTimeMillis() - lastFail > 8_000L && !connectingAddresses.contains(device.address)) {
                                 autoConnect(device.address)
                             }
                         }
@@ -234,11 +240,11 @@ class RadioMeshManager(private val context: Context, private val deviceId: Strin
                 result.scanRecord?.serviceUuids?.contains(bleServiceUuid) == true ||
                 result.scanRecord?.serviceUuids?.contains(bleSecureUuid) == true
             if (isOffgrid) {
-                val wasConnected = peers["bt:${device.address}"]?.connected ?: false
+                val wasConnected = writers.containsKey("bt:${device.address}") || (peers["bt:${device.address}"]?.connected == true)
                 peers["bt:${device.address}"] = Peer("bt:${device.address}", offgridLabel(device.address, name), "Bluetooth (BLE)", wasConnected, rssi)
                 reportPeers()
                 val lastFail = failedAddresses[device.address] ?: 0L
-                val cooldownPassed = System.currentTimeMillis() - lastFail > 20_000L
+                val cooldownPassed = System.currentTimeMillis() - lastFail > 8_000L
                 if (!wasConnected && cooldownPassed && !connectingAddresses.contains(device.address)) {
                     autoConnect(device.address)
                 }
@@ -374,7 +380,7 @@ class RadioMeshManager(private val context: Context, private val deviceId: Strin
             if (peer.id.startsWith("bt:") && !peer.connected && !writers.containsKey(peer.id)) {
                 val address = peer.id.removePrefix("bt:")
                 val lastFail = failedAddresses[address] ?: 0L
-                if (now - lastFail > 20_000L && !connectingAddresses.contains(address)) {
+                if (now - lastFail > 8_000L && !connectingAddresses.contains(address)) {
                     autoConnect(address)
                 }
             }
