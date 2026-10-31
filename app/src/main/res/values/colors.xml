@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="canvas">#F3EEDF</color>
+    <color name="panel">#FBF8EF</color>
+    <color name="raised">#EAE3D2</color>
+    <color name="ink">#151515</color>
+    <color name="ink2">#4B4A45</color>
+    <color name="mute">#77736A</color>
+    <color name="line">#C9C1B0</color>
+    <color name="blue">#155EEF</color>
+    <color name="blue_dark">#0B3BAA</color>
+    <color name="red">#F0442E</color>
+    <color name="red_dark">#C22A15</color>
+    <color name="green">#177245</color>
+    <color name="amber">#A76400</color>
+    <color name="wire">#8A867B</color>
+</resources>
